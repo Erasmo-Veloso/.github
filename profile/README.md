@@ -35,6 +35,9 @@ Quatro áreas, uma equipa, do diagnóstico à operação.
 
 **[Kixi](https://creative-mode.github.io/index/kixi.html)** · estudo e exames para alunos, com OCR, progresso por tema e tutor IA. Lançamento a 15 de outubro.
 
+<!-- relatorio:inicio -->
+<!-- relatorio:fim -->
+
 ### Fale connosco
 
 [creativemode.ao](https://creative-mode.github.io/index/) · [ola@creativemode.ao](mailto:ola@creativemode.ao)

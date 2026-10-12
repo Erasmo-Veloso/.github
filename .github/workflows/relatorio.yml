@@ -1,0 +1,37 @@
+name: Relatório da equipa
+
+on:
+  schedule:
+    - cron: "47 5 * * 1"   # segundas-feiras, 06:47 em Luanda
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: relatorio
+  cancel-in-progress: true
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gerar relatório
+        env:
+          ORG: creative-mode
+          DAYS: "30"
+          TOKEN: ${{ secrets.ORG_REPORT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: python3 scripts/report.py
+
+      - name: Guardar alterações
+        run: |
+          if git diff --quiet; then
+            echo "Sem alterações."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Atualiza o relatório da equipa"
+          git push
