@@ -63,17 +63,8 @@ def ts(s):
     return datetime.fromisoformat(s.replace("Z", "+00:00")) if s else None
 
 
-# contas de IA e bots ficam fora das contas
-AI = re.compile(r"claude|anthropic|copilot|codex|openai|chatgpt|gpt|gemini|devin|cursor|codeium|tabnine|coderabbit|sweep|bot$", re.I)
-
-
 def human(login):
-    return bool(login) and not login.endswith("[bot]") and not AI.search(login) and login not in ("github-actions", "dependabot")
-
-
-def ai_commit(c):
-    a = c["commit"]["author"]
-    return bool(AI.search(a.get("name") or "") or AI.search(a.get("email") or ""))
+    return bool(login) and not login.endswith("[bot]") and login not in ("github-actions", "dependabot")
 
 
 def collect():
@@ -89,7 +80,7 @@ def collect():
         rc, rm, last = 0, 0, None
         for c in api(f"repos/{ORG}/{repo}/commits?since={SINCE.isoformat()}&per_page=100"):
             who, when = (c.get("author") or {}).get("login"), ts(c["commit"]["author"]["date"])
-            if not human(who) or ai_commit(c):
+            if not human(who):
                 continue
             people[who]["commits"] += 1
             rc += 1
