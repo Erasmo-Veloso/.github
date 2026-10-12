@@ -18,6 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Preparar
+        run: pip install --quiet fonttools
+
       - name: Gerar relatório
         env:
           ORG: creative-mode
@@ -27,11 +30,12 @@ jobs:
 
       - name: Guardar alterações
         run: |
-          if git diff --quiet; then
+          git add profile
+          if git diff --cached --quiet; then
             echo "Sem alterações."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "Atualiza o relatório da equipa"
+          git commit -m "Atualiza o relatório da equipa"
           git push
