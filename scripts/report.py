@@ -82,8 +82,12 @@ def collect():
     else:
         # o token automático do Actions só vê o próprio repositório: junta-se a lista pública da organização
         found = api(f"orgs/{ORG}/repos?type=all&per_page=100") + api(f"https://api.github.com/orgs/{ORG}/repos?type=public&per_page=100", auth=False)
-        repos = sorted({r["name"] for r in found
-                        if not r.get("archived") and not r.get("fork") and r["name"] != ".github"})
+        # só os TOP repositórios com atividade mais recente (por omissão, 3)
+        latest = {}
+        for r in found:
+            if not r.get("archived") and not r.get("fork") and r["name"] != ".github":
+                latest[r["name"]] = max(latest.get(r["name"], ""), r.get("pushed_at") or "")
+        repos = sorted(latest, key=latest.get, reverse=True)[:int(os.environ.get("TOP", "3"))]
         print("repositórios:", ", ".join(repos) or "nenhum")
     people = defaultdict(lambda: defaultdict(int))
     per_repo, weeks = {}, [0] * ((DAYS + 6) // 7)
