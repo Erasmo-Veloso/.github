@@ -163,19 +163,6 @@ TEXT = Face("Archivo-500.ttf")
 STRONG = Face("Archivo-600.ttf")
 
 
-def ring(x, y, w, h, frac, t, stroke=None):
-    """O símbolo da marca como medidor: anel alongado, preenchido na proporção `frac`."""
-    sw = stroke or max(2.0, h * 0.22)
-    pad = sw * 0.95
-    inner_w, inner_h = w - 2 * pad, h - 2 * pad
-    fw = max(inner_h, inner_w * min(max(frac, 0), 1)) if frac > 0 else 0
-    out = (f'<rect x="{x + sw/2:.1f}" y="{y + sw/2:.1f}" width="{w - sw:.1f}" height="{h - sw:.1f}" rx="{(h - sw)/2:.1f}" '
-           f'fill="none" stroke="{t["ink"]}" stroke-width="{sw:.1f}"/>')
-    if fw:
-        out += f'<rect x="{x + pad:.1f}" y="{y + pad:.1f}" width="{fw:.1f}" height="{inner_h:.1f}" rx="{inner_h/2:.1f}" fill="{t["accent"]}"/>'
-    return out
-
-
 def card(w, h, t, body):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">'
             f'<rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="24" fill="{t["bg"]}" stroke="{t["line"]}"/>{body}</svg>')
@@ -207,23 +194,19 @@ def resumo(d, t):
         b.append(f'<rect x="{x:.1f}" y="176" width="{colw - 24:.1f}" height="1" fill="{t["line"]}"/>')
         b.append(DISPLAY.path(v, 56, x, 252, t["accent"] if i == 2 else t["ink"]))
         b.append(TEXT.path(lab, 16, x, 282, t["muted"]))
-        if i == 2 and pct is not None:
-            b.append(ring(x, 298, min(160, colw - 24), 22, pct, t))
-    # ritmo semanal: um anel por semana, preenchido na proporção da semana mais ativa
-    b.append(STRONG.path("Ritmo semanal de commits", 16, 56, 350, t["soft"]))
-    weeks, top = d["weeks"], max(d["weeks"]) or 1
-    gap, rw = 16, (W - 112 - 16 * (len(weeks) - 1)) / len(weeks)
+    # ritmo semanal: só os números, a semana atual em lilás
+    b.append(STRONG.path("Commits por semana", 16, 56, 360, t["soft"]))
+    weeks = d["weeks"]
+    cw = (W - 112) / len(weeks)
     for i, n in enumerate(weeks):
-        x = 56 + i * (rw + gap)
-        b.append(ring(x, 372, rw, 36, n / top, t))
-        lab = "esta semana" if i == len(weeks) - 1 else f"há {len(weeks) - 1 - i} sem."
-        b.append(TEXT.path(lab, 14, x + 4, 436, t["muted"]))
-        b.append(STRONG.path(str(n), 14, x + rw - 4, 436, t["soft"], "end"))
+        x, now = 56 + i * cw, i == len(weeks) - 1
+        b.append(DISPLAY.path(str(n), 32, x, 412, t["accent"] if now else t["ink"]))
+        b.append(TEXT.path("esta semana" if now else f"há {len(weeks) - 1 - i} sem.", 14, x, 438, t["muted"]))
     return card(W, H, t, "".join(b))
 
 
 def table(title, rows, cols, t, label_fn):
-    """rows: [(label, bar_value, [valores...])]; a primeira coluna numérica leva o anel."""
+    """rows: [(label, valor_principal, [valores...])]."""
     W, head, rh = 1280, 150, 64
     H = head + rh * max(len(rows), 1) + 40
     b = [DISPLAY.path(title, 30, 56, 78, t["ink"])]
@@ -231,11 +214,9 @@ def table(title, rows, cols, t, label_fn):
     for x, c in zip(xs, cols):
         b.append(STRONG.path(c, 14, x, 124, t["muted"], "end"))
     b.append(f'<rect x="56" y="140" width="{W - 112}" height="1" fill="{t["line"]}"/>')
-    top = max([r[1] for r in rows] or [1]) or 1
     for i, (label, bar, vals) in enumerate(rows):
         y = head + i * rh
         b.append(label_fn(label, y, t))
-        b.append(ring(330, y + 18, 200, 28, bar / top, t))
         for j, (x, v) in enumerate(zip(xs, vals)):
             b.append((DISPLAY if j == 0 else STRONG).path(str(v), 22 if j == 0 else 18, x, y + 40, t["ink"] if j == 0 else t["soft"], "end"))
         b.append(f'<rect x="56" y="{y + rh - 1}" width="{W - 112}" height="1" fill="{t["line"]}"/>')
