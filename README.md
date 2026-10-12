@@ -25,16 +25,6 @@ ruido = 0           # notificações em silêncio
 anel = 0.5          # meio cheio: o resto preenche-se a trabalhar
 ```
 
-### O que fazemos
-
-**IA e Dados** · **Software** · **BPM e Automação** · **Branding e Design**
-
-Quatro áreas, uma equipa, do diagnóstico à operação.
-
-### Em construção
-
-**[Kixi](https://creative-mode.github.io/index/kixi.html)** · estudo e exames para alunos, com OCR, progresso por tema e tutor IA. Lançamento a 15 de outubro.
-
 ### Fale connosco
 
 [creativemode.ao](https://creative-mode.github.io/index/) · [ola@creativemode.ao](mailto:ola@creativemode.ao)
