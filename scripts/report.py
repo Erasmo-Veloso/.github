@@ -36,12 +36,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 # ---------------------------------------------------------------- dados
 
-def api(path):
+def api(path, auth=True):
     url = path if path.startswith("http") else f"https://api.github.com/{path.lstrip('/')}"
     out = []
     while url:
         req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"})
-        if TOKEN:
+        if TOKEN and auth:
             req.add_header("Authorization", f"Bearer {TOKEN}")
         try:
             with urllib.request.urlopen(req, timeout=30) as r:
@@ -80,8 +80,11 @@ def collect():
     if os.environ.get("REPOS"):
         repos = [r.strip() for r in os.environ["REPOS"].split(",") if r.strip()]
     else:
-        repos = [r["name"] for r in api(f"orgs/{ORG}/repos?type=all&per_page=100")
-                 if not r.get("archived") and not r.get("fork") and r["name"] != ".github"]
+        # o token automático do Actions só vê o próprio repositório: junta-se a lista pública da organização
+        found = api(f"orgs/{ORG}/repos?type=all&per_page=100") + api(f"https://api.github.com/orgs/{ORG}/repos?type=public&per_page=100", auth=False)
+        repos = sorted({r["name"] for r in found
+                        if not r.get("archived") and not r.get("fork") and r["name"] != ".github"})
+        print("repositórios:", ", ".join(repos) or "nenhum")
     people = defaultdict(lambda: defaultdict(int))
     per_repo, weeks = {}, [0] * ((DAYS + 6) // 7)
     first_review, merged_total, merged_reviewed, waiting = [], 0, 0, []
